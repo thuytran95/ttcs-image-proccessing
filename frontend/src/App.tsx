@@ -103,7 +103,7 @@ const App: React.FC = () => {
 
   return (
     <>
-      <h1>Ứng dụng Xử lý Ảnh</h1>
+      <h1>Ứng dụng Xử lý ảnh</h1>
       <div
         style={{
           display: "flex",
