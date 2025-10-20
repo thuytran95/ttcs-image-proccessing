@@ -126,7 +126,6 @@ const App: React.FC = () => {
           <option value="">Chọn thuật toán</option>
           <option value="median">Lọc trung vị (Median Filter)</option>
           <option value="canny">Phát hiện biên (Canny)</option>
-          <option value="canny_opencv">Phát hiện biên (Canny) - OpenCV</option>
         </select>
         <select
           value={kernelSize}
@@ -143,7 +142,7 @@ const App: React.FC = () => {
           disabled={status === STATUS.LOADING || !images.processed}
           className="download-btn"
         >
-          Download
+          Lưu kết quả
         </button>
         <button onClick={handleReset} disabled={status === STATUS.LOADING}>
           Reset

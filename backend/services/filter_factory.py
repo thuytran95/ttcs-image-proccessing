@@ -1,5 +1,5 @@
 from typing import Dict, Any
-from entities.filters import BaseFilter, CannyFilter, MedianFilter, CannyParameters, MedianParameters
+from entities.filters import BaseFilter, CannyEdgeDetector, MedianFilter, CannyParameters, MedianParameters
 
 
 class FilterFactory:
@@ -8,7 +8,7 @@ class FilterFactory:
     """
     
     _filter_registry = {
-        'canny': CannyFilter,
+        'canny': CannyEdgeDetector,
         'median': MedianFilter,
     }
     

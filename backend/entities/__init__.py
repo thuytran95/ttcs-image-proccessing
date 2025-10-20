@@ -1,4 +1,4 @@
 from .image import Image
-from .filters import CannyFilter, MedianFilter
+from .filters import CannyEdgeDetector, MedianFilter
 
-__all__ = ['Image', 'CannyFilter', 'MedianFilter']
+__all__ = ['Image', 'CannyEdgeDetector', 'MedianFilter']

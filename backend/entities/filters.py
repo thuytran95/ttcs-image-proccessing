@@ -48,17 +48,12 @@ class BaseFilter(ABC):
         pass
 
 
-class CannyFilter(BaseFilter):
-    """
-    Canny Edge Detection Filter với các tối ưu hóa
-    """
-    
+class CannyEdgeDetector(BaseFilter):
     def __init__(self, parameters: CannyParameters):
         super().__init__(parameters)
         self._validate_parameters()
     
     def _validate_parameters(self):
-        """Validate các tham số"""
         params = self.parameters
         if params.kernel_size % 2 == 0:
             raise ValueError("Kernel size phải là số lẻ!")
@@ -71,18 +66,14 @@ class CannyFilter(BaseFilter):
         return "Canny Edge Detection"
     
     def apply(self, image: Image) -> Image:
-        """Áp dụng Canny filter"""
-        # Convert to grayscale nếu cần
         if len(image.shape) == 3:
             gray_image = image.to_grayscale()
         else:
             gray_image = image
         
-        # Convert to float32 for better precision
         float_image = gray_image.to_float32()
         
-        # Apply Canny algorithm
-        edges = self._canny_optimized(
+        edges = self._canny(
             float_image.data,
             self.parameters.sigma,
             self.parameters.low_threshold,
@@ -93,7 +84,6 @@ class CannyFilter(BaseFilter):
         return Image(image_data=edges.astype(np.uint8))
     
     def _gaussian_kernel(self, size: int, sigma: float) -> np.ndarray:
-        """Tạo kernel Gaussian 2D tối ưu"""
         if size % 2 == 0:
             raise ValueError("Kernel size phải là số lẻ!")
         
@@ -106,7 +96,6 @@ class CannyFilter(BaseFilter):
         return kernel / np.sum(kernel)
     
     def _convolve(self, image: np.ndarray, kernel: np.ndarray) -> np.ndarray:
-        """Convolution tối ưu sử dụng sliding window view"""
         kh, kw = kernel.shape
         pad_h, pad_w = kh // 2, kw // 2
         padded = np.pad(image, ((pad_h, pad_h), (pad_w, pad_w)), mode='edge')
@@ -117,7 +106,6 @@ class CannyFilter(BaseFilter):
         return result
     
     def _sobel_gradients(self, image: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
-        """Tính gradient Sobel tối ưu"""
         sobel_x = np.array([[-1, 0, 1], [-2, 0, 2], [-1, 0, 1]], dtype=np.float32)
         sobel_y = np.array([[-1, -2, -1], [0, 0, 0], [1, 2, 1]], dtype=np.float32)
         
@@ -130,7 +118,6 @@ class CannyFilter(BaseFilter):
         return magnitude, angle
     
     def _non_max_suppression(self, magnitude: np.ndarray, angle: np.ndarray) -> np.ndarray:
-        """Non-max suppression tối ưu"""
         h, w = magnitude.shape
         result = np.zeros_like(magnitude)
         
@@ -167,7 +154,6 @@ class CannyFilter(BaseFilter):
         return result
     
     def _double_threshold(self, image: np.ndarray, low: int, high: int) -> np.ndarray:
-        """Double threshold tối ưu"""
         strong = (image >= high)
         weak = (image >= low) & (image < high)
         
@@ -177,8 +163,7 @@ class CannyFilter(BaseFilter):
         
         return result
     
-    def _hysteresis_optimized(self, image: np.ndarray) -> np.ndarray:
-        """Hysteresis tối ưu"""
+    def _hysteresis(self, image: np.ndarray) -> np.ndarray:
         result = image.copy()
         weak_mask = (result == 128)
         kernel = np.ones((3, 3), dtype=np.uint8)
@@ -190,9 +175,8 @@ class CannyFilter(BaseFilter):
         
         return result
     
-    def _canny_optimized(self, image: np.ndarray, sigma: float, low_thresh: int, 
+    def _canny(self, image: np.ndarray, sigma: float, low_thresh: int, 
                         high_thresh: int, kernel_size: int) -> np.ndarray:
-        """Canny tối ưu với vectorized operations"""
         if image.dtype != np.float32:
             image = image.astype(np.float32)
         
@@ -202,22 +186,17 @@ class CannyFilter(BaseFilter):
         magnitude, angle = self._sobel_gradients(smoothed)
         nms = self._non_max_suppression(magnitude, angle)
         thresh = self._double_threshold(nms, low_thresh, high_thresh)
-        edges = self._hysteresis_optimized(thresh)
+        edges = self._hysteresis(thresh)
         
         return edges.astype(np.uint8)
 
 
-class MedianFilter(BaseFilter):
-    """
-    Median Filter để loại bỏ noise
-    """
-    
+class MedianFilter(BaseFilter):    
     def __init__(self, parameters: MedianParameters):
         super().__init__(parameters)
         self._validate_parameters()
     
     def _validate_parameters(self):
-        """Validate các tham số"""
         if self.parameters.kernel_size % 2 == 0:
             raise ValueError("Kernel size phải là số lẻ!")
         if self.parameters.kernel_size < 3:
@@ -227,8 +206,6 @@ class MedianFilter(BaseFilter):
         return "Median Filter"
     
     def apply(self, image: Image) -> Image:
-        """Áp dụng Median filter"""
-        # Convert to grayscale nếu cần
         if len(image.shape) == 3:
             gray_image = image.to_grayscale()
         else:
@@ -242,7 +219,6 @@ class MedianFilter(BaseFilter):
         return Image(image_data=filtered_data.astype(image.dtype))
     
     def _median_filter(self, image: np.ndarray, kernel_size: int) -> np.ndarray:
-        """Median filter tối ưu sử dụng sliding window view"""
         m, n = image.shape
         pad_size = kernel_size // 2
         padded_image = np.pad(image, pad_size, mode='edge')
